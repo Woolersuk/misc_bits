@@ -1,0 +1,64 @@
+function prompt {
+    $gitBranch = ''
+    if (Test-Path .git) {
+        $gitBranch = git rev-parse --abbrev-ref HEAD
+    }
+    "$PWD $gitBranch> "
+}
+
+# Function gco (git commit)
+function gco {
+    $BRANCH = gb
+    $FUNCTION = $args[0]
+    $COMMENT = $args[1..($args.Length - 1)] -join ' '
+    git commit -m "$($FUNCTION): $($BRANCH): $($COMMENT)"
+}
+
+# Function nb (git create new branch from master)
+function nb {
+    param($BRANCH)
+    git stash
+    git checkout master
+    git pull
+    git checkout -b $BRANCH
+    git stash apply
+    git status
+}
+
+# Function gar (git clone and pre-commit install for each repo)
+function gar {
+    $CURRENTDIR = Get-Location
+    $repos = az repos list --org https://youlend.visualstudio.com -p youlend-infrastructure | jq '.[].name' -r
+    foreach ($repo in $repos) {
+        gcl $repo
+        Set-Location "$CURRENTDIR\$repo"
+        pre-commit install
+        Set-Location $CURRENTDIR
+    }
+}
+
+# Function to parse the current Git branch
+function parse_git_branch {
+    $branch = git branch 2> $null | Where-Object { $_ -match '^\*' } | ForEach-Object { $_ -replace '^\* ', '' }
+    if ($branch) { ":($branch)" }
+}
+
+# Define aliases (PowerShell equivalent to bash aliases)
+Set-Alias gaa "git add -u"
+Set-Alias gat "git ls-files --modified | ForEach-Object { git add $_ }"
+Set-Alias gb "git branch | Where-Object { $_ -match '^\*' } | ForEach-Object { $_ -replace '^\* ', '' }"
+Set-Alias gca "git commit --amend --no-edit"
+Set-Alias gcl "git clone $args"
+Set-Alias gdm "git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit master.."
+Set-Alias gfo "git fetch origin"
+Set-Alias gg "git grep -n"
+Set-Alias gicl "git clone youlend@vs-ssh.visualstudio.com:v3/youlend/Youlend-Infrastructure/$args"
+Set-Alias gitown "git log | Select-String 'Author' | Sort-Object | Get-Unique"
+Set-Alias gmm "git merge master"
+Set-Alias gpob "git pull origin $args"
+Set-Alias gpom "git pull origin master"
+Set-Alias gprf "git config pull.rebase false"
+Set-Alias gprt "git config pull.rebase true"
+Set-Alias gr "cd (git rev-parse --show-toplevel)"
+Set-Alias grm "git rebase master"
+Set-Alias gs "git status"
