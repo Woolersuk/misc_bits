@@ -132,11 +132,9 @@ export PATH="$PATH:/home/alex/.local/bin"
 
 PATH=$PATH:$HOME/bin
 export MANPATH=$MANPATH:$HOME/share/man
-source ~/bash_scripts/AWSUtils.sh
-source ~/bash_scripts/GitUtils.sh
-source ~/bash_scripts/KubernetesUtils.sh
-source ~/bash_scripts/TeleportUtils.sh
-source ~/bash_scripts/TerraformUtils.sh
+for script in ~/bash_scripts/*.sh; do
+    [ -f "$script" ] && source "$script"
+done
 
 parse_git_branch() {
   # Check if we're inside a Git repository
