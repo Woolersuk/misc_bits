@@ -3,7 +3,7 @@ function prompt {
     if (Test-Path .git) {
         $gitBranch = git rev-parse --abbrev-ref HEAD
     }
-    "$PWD $gitBranch> "
+    "$PWD [$gitBranch]>"
 }
 
 # Function gco (git commit)
@@ -43,6 +43,32 @@ function parse_git_branch {
     if ($branch) { ":($branch)" }
 }
 
+# Function to update your branch with latest from a specified base branch (merge)
+function Update-GitBranch-Merge {
+    param(
+        [Parameter(Mandatory=$false)]
+        [string]$BaseBranch = "main"
+    )
+    
+    $current_branch = git branch --show-current
+    git fetch origin
+    git merge origin/$BaseBranch
+    Write-Output "Updated $current_branch with latest changes from $BaseBranch via merge"
+}
+
+# Function to update your branch with latest from a specified base branch (rebase)
+function Update-GitBranch-Rebase {
+    param(
+        [Parameter(Mandatory=$false)]
+        [string]$BaseBranch = "main"
+    )
+    
+    $current_branch = git branch --show-current
+    git fetch origin
+    git rebase origin/$BaseBranch
+    Write-Output "Updated $current_branch with latest changes from $BaseBranch via rebase"
+}
+
 # Define aliases (PowerShell equivalent to bash aliases)
 Set-Alias gaa "git add -u"
 Set-Alias gat "git ls-files --modified | ForEach-Object { git add $_ }"
@@ -62,3 +88,5 @@ Set-Alias gprt "git config pull.rebase true"
 Set-Alias gr "cd (git rev-parse --show-toplevel)"
 Set-Alias grm "git rebase master"
 Set-Alias gs "git status"
+Set-Alias gupdate Update-GitBranch-Merge
+Set-Alias grebase Update-GitBranch-Rebase

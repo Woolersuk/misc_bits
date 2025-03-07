@@ -29,7 +29,33 @@ parse_git_branch() {
   git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/:(\1)/'
 }
 
+# Function to update your branch with latest from a specified base branch (merge)
+git_update_branch_merge() {
+    local base_branch="main"
+    if [ "$1" = "master" ]; then
+        base_branch="master"
+    fi
+    
+    current_branch=$(git branch --show-current)
+    git fetch origin
+    git merge origin/$base_branch
+    echo "Updated $current_branch with latest changes from $base_branch via merge"
+}
 
+# Function to update your branch with latest from a specified base branch (rebase)
+git_update_branch_rebase() {
+    local base_branch="main"
+    if [ "$1" = "master" ]; then
+        base_branch="master"
+    fi
+    
+    current_branch=$(git branch --show-current)
+    git fetch origin
+    git rebase origin/$base_branch
+    echo "Updated $current_branch with latest changes from $base_branch via rebase"
+}
+
+# Create aliases
 alias gaa="git add -u"
 alias gat="git ls-files --modified | xargs git add"
 alias gb="git branch | grep \"*\" | cut -d ' ' -f2"
@@ -50,3 +76,5 @@ alias gprt="git config pull.rebase true"
 alias gr="cd $(git rev-parse --show-toplevel)"
 alias grm="git rebase master"
 alias gs="git status"
+alias gupdate="git_update_branch_merge"
+alias grebase="git_update_branch_rebase"
