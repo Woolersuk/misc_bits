@@ -31,9 +31,16 @@ parse_git_branch() {
 
 # Function to update your branch with latest from a specified base branch (merge)
 git_update_branch_merge() {
-    local base_branch="main"
-    if [ "$1" = "master" ]; then
-        base_branch="master"
+    local base_branch="$1"
+    
+    # If no branch specified, check which one exists
+    if [ -z "$base_branch" ]; then
+        # Check if main exists
+        if git ls-remote --heads origin main | grep -q main; then
+            base_branch="main"
+        else
+            base_branch="master"
+        fi
     fi
     
     current_branch=$(git branch --show-current)
@@ -44,13 +51,27 @@ git_update_branch_merge() {
 
 # Function to update your branch with latest from a specified base branch (rebase)
 git_update_branch_rebase() {
-    local base_branch="main"
-    if [ "$1" = "master" ]; then
-        base_branch="master"
+    local base_branch="$1"
+    
+    # If no branch specified, check which one exists
+    if [ -z "$base_branch" ]; then
+        # Check if main exists
+        if git ls-remote --heads origin main | grep -q main; then
+            base_branch="main"
+        else
+            base_branch="master"
+        fi
     fi
     
     current_branch=$(git branch --show-current)
     git fetch origin
+    
+    # Check if the specified branch exists
+    if ! git ls-remote --heads origin $base_branch | grep -q $base_branch; then
+        echo "Error: Branch 'origin/$base_branch' does not exist."
+        return 1
+    fi
+    
     git rebase origin/$base_branch
     echo "Updated $current_branch with latest changes from $base_branch via rebase"
 }

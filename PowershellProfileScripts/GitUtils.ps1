@@ -44,30 +44,76 @@ function parse_git_branch {
 }
 
 # Function to update your branch with latest from a specified base branch (merge)
+# Function to update your branch with latest from a specified base branch (merge)
 function Update-GitBranch-Merge {
     param(
         [Parameter(Mandatory=$false)]
-        [string]$BaseBranch = "main"
+        [string]$BaseBranch = ""
     )
+    
+    # If no branch specified, check which one exists
+    if ([string]::IsNullOrEmpty($BaseBranch)) {
+        # Check if main exists
+        $main_exists = git ls-remote --heads origin main
+        if ($main_exists) {
+            $BaseBranch = "main"
+        } else {
+            $BaseBranch = "master"
+        }
+    }
     
     $current_branch = git branch --show-current
     git fetch origin
+    
+    # Check if the specified branch exists
+    $branch_exists = git ls-remote --heads origin $BaseBranch
+    if (-not $branch_exists) {
+        Write-Error "Error: Branch 'origin/$BaseBranch' does not exist."
+        return
+    }
+    
     git merge origin/$BaseBranch
     Write-Output "Updated $current_branch with latest changes from $BaseBranch via merge"
 }
 
+# Create alias
+Set-Alias -Name gupdate -Value Update-GitBranch-Merge
+
+# Function to update your branch with latest from a specified base branch (rebase)
 # Function to update your branch with latest from a specified base branch (rebase)
 function Update-GitBranch-Rebase {
     param(
         [Parameter(Mandatory=$false)]
-        [string]$BaseBranch = "main"
+        [string]$BaseBranch = ""
     )
+    
+    # If no branch specified, check which one exists
+    if ([string]::IsNullOrEmpty($BaseBranch)) {
+        # Check if main exists
+        $main_exists = git ls-remote --heads origin main
+        if ($main_exists) {
+            $BaseBranch = "main"
+        } else {
+            $BaseBranch = "master"
+        }
+    }
     
     $current_branch = git branch --show-current
     git fetch origin
+    
+    # Check if the specified branch exists
+    $branch_exists = git ls-remote --heads origin $BaseBranch
+    if (-not $branch_exists) {
+        Write-Error "Error: Branch 'origin/$BaseBranch' does not exist."
+        return
+    }
+    
     git rebase origin/$BaseBranch
     Write-Output "Updated $current_branch with latest changes from $BaseBranch via rebase"
 }
+
+# Create alias
+Set-Alias -Name grebase -Value Update-GitBranch-Rebase
 
 # Define aliases (PowerShell equivalent to bash aliases)
 Set-Alias gaa "git add -u"
